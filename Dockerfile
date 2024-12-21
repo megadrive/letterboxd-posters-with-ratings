@@ -32,4 +32,4 @@ USER pptruser
 
 EXPOSE 3500
 COPY . .
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start", "&&", "npm", "run", "start"]
