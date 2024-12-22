@@ -12,5 +12,9 @@ RUN apt-get update && apt-get install curl gnupg -y \
   && apt-get install google-chrome-stable -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
+WORKDIR /app
+
+COPY . .
+
 # Install your app here...
 CMD ["npm", "run", "start"]
