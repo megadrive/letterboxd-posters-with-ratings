@@ -1,5 +1,6 @@
 import type cheerio from "cheerio";
 import { load } from "cheerio";
+import { consts } from "./consts";
 
 async function getHtml(
   url: string
@@ -47,8 +48,11 @@ export const fetchInfo = async (
       `https://letterboxd.com/ajax/poster/film/${slug}/hero/230x345/?k=_45aa59a6`
     );
     if (!$poster) return undefined;
-    const poster = $poster("img").attr("src");
-    if (!poster) return undefined;
+    let poster = $poster("img").attr("src");
+    if (!poster) {
+      console.error("No poster found");
+      poster = consts.errorImageUrl;
+    }
 
     const stars = `${"★".repeat(Math.floor(+rating))}${
       +rating % 1 > 0.5 ? "½" : ""
