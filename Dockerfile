@@ -14,7 +14,14 @@ RUN apt-get update && apt-get install curl gnupg -y \
 
 WORKDIR /app
 
+COPY package*.json ./
+
+RUN npm ci
+
+RUN npm install -g typescript
+
 COPY . .
 
-# Install your app here...
-CMD ["npm", "run", "start"]
+RUN tsc
+
+CMD ["node", "dist/index.js"]
