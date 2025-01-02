@@ -14,10 +14,9 @@ RUN apt-get update && apt-get install curl gnupg -y \
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package*.json .
 
-RUN npm ci
-
+RUN npm install
 RUN npm install -g typescript
 
 COPY . .
