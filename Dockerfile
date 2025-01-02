@@ -23,4 +23,6 @@ COPY . .
 
 RUN tsc
 
+EXPOSE $PORT
+
 CMD ["node", "dist/index.js"]
