@@ -3,7 +3,8 @@ import express from "express";
 import cors from "cors";
 import { fetchInfo } from "./letterboxd";
 import { template } from "./template";
-import htmlToImage from "node-html-to-image";
+import { Jimp, loadFont } from "jimp";
+import { SANS_14_BLACK, SANS_32_WHITE } from "jimp/fonts";
 
 const app = express();
 app.use(cors());
@@ -43,9 +44,32 @@ app.get("/:slug", async (req, res) => {
       .replace("{{poster}}", info.poster)
       .replace("{{rating}}", info.stars);
 
-    const postered = await htmlToImage({
-      html: poster,
-    });
+    ///////
+
+    const postered = await (async () => {
+      // read info.poster as buffer from a fetch
+      const posterBuffer = await fetch(info.poster).then((res) =>
+        res.arrayBuffer()
+      );
+
+      const font = await loadFont(SANS_32_WHITE);
+      const rating = new Jimp({ width: 230, height: 345 }).print({
+        font,
+        x: 0,
+        y: 0,
+        text: info.stars,
+      });
+      rating.background = 0x000000;
+
+      const compositedInitial = await Jimp.fromBuffer(posterBuffer);
+      const composited = compositedInitial.scaleToFit({ w: 230, h: 345 }).blit({
+        src: rating,
+        x: 0,
+        y: 0,
+      });
+      return await composited.getBuffer("image/png");
+    })();
+    ///////
 
     res.writeHead(200, {
       "content-type": "image/png",
