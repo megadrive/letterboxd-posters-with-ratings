@@ -4,7 +4,7 @@ import cors from "cors";
 import { fetchInfo } from "./letterboxd";
 import { template } from "./template";
 import { Jimp, loadFont } from "jimp";
-import { SANS_14_BLACK, SANS_32_WHITE } from "jimp/fonts";
+import { SANS_16_WHITE } from "jimp/fonts";
 
 const app = express();
 app.use(cors());
@@ -52,7 +52,7 @@ app.get("/:slug", async (req, res) => {
         res.arrayBuffer()
       );
 
-      const font = await loadFont(SANS_32_WHITE);
+      const font = await loadFont(SANS_16_WHITE);
       const rating = new Jimp({ width: 230, height: 345 }).print({
         font,
         x: 0,

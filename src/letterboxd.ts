@@ -54,9 +54,11 @@ export const fetchInfo = async (
       poster = consts.errorImageUrl;
     }
 
-    const stars = `${"★".repeat(Math.floor(+rating))}${
-      +rating % 1 > 0.5 ? "½" : ""
-    }`;
+    const stars = `${+rating} / 5`;
+
+    // const stars = `${"★".repeat(Math.floor(+rating))}${
+    //   +rating % 1 > 0.5 ? "½" : ""
+    // }`;
 
     return { rating, slug, poster, stars };
   } catch (error) {
