@@ -3,6 +3,8 @@ FROM node:slim AS app
 ARG PORT=3000
 ARG DATABASE_URL=file:./cache.db
 
+RUN apt-get update -y && apt-get install -y openssl
+
 WORKDIR /app
 
 COPY package*.json .
