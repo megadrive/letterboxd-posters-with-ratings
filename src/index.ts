@@ -83,8 +83,6 @@ app.get("/:slug", async (req, res) => {
 
     console.info({ slug, info });
 
-    ///////
-
     const postered = await (async () => {
       // read info.poster as buffer from a fetch
       const posterBuffer = await fetch(info.poster).then((res) =>
@@ -145,11 +143,11 @@ app.get("/:slug", async (req, res) => {
 
       return await composited.getBuffer("image/png");
     })();
-    ///////
 
     res.writeHead(200, {
       "content-type": "image/png",
-      "cache-control": "max-age=86400",
+      // 1 day, revalidate 30 minutes after expiry
+      "cache-control": "max-age=86400, stale-while-revalidate=1800",
     });
     res.end(postered, "binary");
     return;

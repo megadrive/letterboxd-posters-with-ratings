@@ -4,22 +4,24 @@
 	"description": "",
 	"main": "dist/index.js",
 	"scripts": {
-		"start": "tsx src/index.ts",
-		"build": "tsc",
+		"start": "tsx src/index.js",
+		"build": "prisma generate && prisma db push && tsc",
 		"dev": "tsx watch src/index.ts",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"keywords": [],
-	"author": "",
-	"license": "ISC",
+	"author": "Andy https://github.com/megadrive",
+	"license": "MIT",
 	"devDependencies": {
 		"@total-typescript/ts-reset": "^0.6.1",
 		"@types/cors": "^2.8.17",
 		"@types/express": "^5.0.0",
 		"@types/node": "^22.10.2",
+		"prisma": "^6.3.0",
 		"typescript": "^5.7.2"
 	},
 	"dependencies": {
+		"@prisma/client": "^6.3.0",
 		"cheerio": "^1.0.0",
 		"cors": "^2.8.5",
 		"dotenv": "^16.4.7",

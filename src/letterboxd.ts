@@ -1,6 +1,7 @@
 import type cheerio from "cheerio";
 import { load } from "cheerio";
 import { consts } from "./consts";
+import { cache } from "./cache";
 
 async function getHtml(
   url: string
@@ -37,6 +38,18 @@ export const fetchInfo = async (
 > => {
   console.info(`slug: ${slug}`);
 
+  console.info(`Checking cache for ${slug}`);
+  const cachedRating = await cache.get(slug);
+  if (cachedRating) {
+    console.info(`Cached rating for ${slug}: ${cachedRating}`);
+    return {
+      slug,
+      rating: `${cachedRating.rating}`,
+      poster: cachedRating.posterUrl,
+      stars: `${cachedRating.rating} / 5`,
+    };
+  }
+
   try {
     const $rating = await getHtml(
       `https://letterboxd.com/csi/film/${slug}/rating-histogram/`
@@ -56,9 +69,8 @@ export const fetchInfo = async (
 
     const stars = `${+rating} / 5`;
 
-    // const stars = `${"★".repeat(Math.floor(+rating))}${
-    //   +rating % 1 > 0.5 ? "½" : ""
-    // }`;
+    // set cache
+    cache.set({ slug, rating: +rating, poster });
 
     return { rating, slug, poster, stars };
   } catch (error) {
