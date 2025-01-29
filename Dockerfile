@@ -21,7 +21,7 @@ RUN npm install -g typescript
 
 COPY . .
 
-RUN tsc
+RUN npm run build
 
 EXPOSE $PORT
 
