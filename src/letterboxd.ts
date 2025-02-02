@@ -11,7 +11,8 @@ async function getHtml(
   try {
     const res = await fetch(url, {
       headers: {
-        "Cache-Control": "max-age=3600, stale-while-revalidate=600",
+        // max-age 12 hours, revalidate after 6 hours
+        "Cache-Control": "max-age=43200, stale-while-revalidate=21600",
       },
     });
     if (!res.ok) throw new Error("Failed to fetch html");
@@ -30,7 +31,7 @@ export const fetchInfo = async (
 ): Promise<
   | {
       slug: string;
-      rating: string;
+      rating: number;
       poster: string;
       stars: string;
     }
@@ -44,7 +45,7 @@ export const fetchInfo = async (
     console.info(`Cached rating for ${slug}: ${cachedRating}`);
     return {
       slug,
-      rating: `${cachedRating.rating}`,
+      rating: cachedRating.rating,
       poster: cachedRating.posterUrl,
       stars: `${cachedRating.rating} / 5`,
     };
@@ -67,12 +68,12 @@ export const fetchInfo = async (
       poster = consts.errorImageUrl;
     }
 
-    const stars = `${+rating} / 5`;
+    const stars = `${+rating}/5`;
 
     // set cache
     cache.set({ slug, rating: +rating, poster });
 
-    return { rating, slug, poster, stars };
+    return { rating: +rating, slug, poster, stars };
   } catch (error) {
     console.error(error);
   }
