@@ -6,6 +6,7 @@ import { template } from "./template";
 import { Jimp, loadFont } from "jimp";
 import { SANS_16_WHITE, SANS_32_WHITE } from "jimp/fonts";
 import { join } from "node:path";
+import { config } from "./config";
 
 const MAX_WIDTH = 230;
 const MAX_HEIGHT = 345;
@@ -66,7 +67,7 @@ app.get("/:slug/info", async (req, res) => {
   res.status(500).send();
 });
 
-app.get("/:slug", async (req, res) => {
+app.get("/:slug/:config?", async (req, res) => {
   // early exit if assets are not loaded
   if (!assets) {
     res.status(500).send();
@@ -81,7 +82,11 @@ app.get("/:slug", async (req, res) => {
       return;
     }
 
-    console.info({ slug, info });
+    const providedConfig = req.params.config
+      ? config.decode(req.params.config)
+      : undefined;
+
+    console.info({ slug, info, providedConfig });
 
     const postered = await (async () => {
       // read info.poster as buffer from a fetch
