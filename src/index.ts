@@ -1,38 +1,35 @@
-import { envVars } from "./envVars";
-import express from "express";
-import cors from "cors";
-import { fetchInfo } from "./letterboxd";
-import { template } from "./template";
+import { Hono } from "hono";
+import { fetchInfo } from "./letterboxd.js";
 import { Jimp, loadFont } from "jimp";
 import { SANS_16_WHITE, SANS_32_WHITE } from "jimp/fonts";
 import { join } from "node:path";
-import { config } from "./config";
+import { config } from "./config.js";
+import { serve } from "@hono/node-server";
+import { envVars } from "./envVars.js";
 
 const MAX_WIDTH = 230;
 const MAX_HEIGHT = 345;
 
-const app = express();
-app.use(cors());
+const app = new Hono();
+
+const __dirname = new URL(".", import.meta.url).pathname.slice(1);
 
 const loadAssets = async () => {
+  const pathToAssets = join(__dirname, "..", "assets");
   try {
     const banner = (
-      await Jimp.read(join(__dirname, "..", "assets", "banner.png"))
+      await Jimp.read(join(pathToAssets, "banner.png"))
     ).scaleToFit({ w: MAX_WIDTH, h: MAX_HEIGHT });
-    const half = (
-      await Jimp.read(join(__dirname, "..", "assets", "half.png"))
-    ).scaleToFit({
+    const half = (await Jimp.read(join(pathToAssets, "half.png"))).scaleToFit({
       w: 16,
       h: 16,
     });
-    const star = (
-      await Jimp.read(join(__dirname, "..", "assets", "star.png"))
-    ).scaleToFit({
+    const star = (await Jimp.read(join(pathToAssets, "star.png"))).scaleToFit({
       w: 16,
       h: 16,
     });
 
-    return { banner, half, star };
+    return { banner, half, star } as const;
   } catch (error) {
     console.error("Couldn't load assets.");
     console.error(error);
@@ -45,46 +42,41 @@ loadAssets().then((a) => {
   console.info("Assets loaded.");
 });
 
-app.get("/", (req, res) => {
-  res.status(200).send("Hello world");
+app.get("/", async (c) => {
+  return c.notFound();
 });
 
-app.get("/:slug/info", async (req, res) => {
+app.get("/:slug/info", async (c) => {
   try {
-    const { slug } = req.params;
+    const { slug } = c.req.param();
     const info = await fetchInfo(slug);
     if (!info) {
-      res.status(404).send();
-      return;
+      return c.notFound();
     }
 
-    res.status(200).json(info);
-    return;
+    return c.json(info);
   } catch (error) {
     console.error(error);
   }
 
-  res.status(500).send();
+  return c.text("", 500);
 });
 
-app.get("/:slug/:config?", async (req, res) => {
+app.get("/:slug/:config?", async (c) => {
   // early exit if assets are not loaded
   if (!assets) {
-    res.status(500).send();
-    return;
+    return c.notFound();
   }
 
   try {
-    const { slug } = req.params;
+    const { slug } = c.req.param();
     const info = await fetchInfo(slug);
     if (!info) {
-      res.status(404).send();
-      return;
+      return c.notFound();
     }
 
-    const providedConfig = req.params.config
-      ? config.decode(req.params.config)
-      : undefined;
+    const configParam = c.req.param("config");
+    const providedConfig = configParam ? config.decode(configParam) : undefined;
 
     console.info({ slug, info, providedConfig });
 
@@ -149,20 +141,17 @@ app.get("/:slug/:config?", async (req, res) => {
       return await composited.getBuffer("image/png");
     })();
 
-    res.writeHead(200, {
-      "content-type": "image/png",
-      // 1 day, revalidate 30 minutes after expiry
-      "cache-control": "max-age=86400, stale-while-revalidate=1800",
-    });
-    res.end(postered, "binary");
-    return;
+    c.header("Cache-Control", "max-age=86400, stale-while-revalidate=1800");
+    c.header("Content-Type", "image/png");
+    return c.body(postered);
   } catch (error) {
     console.error(error);
   }
 
-  res.status(404).send();
+  return c.notFound();
 });
 
-app.listen(envVars.PORT, () => {
-  console.log(`Server is running on port ${envVars.PORT}`);
+serve({
+  fetch: app.fetch,
+  port: envVars.PORT,
 });
