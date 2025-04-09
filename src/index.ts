@@ -46,6 +46,10 @@ app.get("/", async (c) => {
   return c.notFound();
 });
 
+app.get("/favicon.ico", async (c) => {
+  return c.redirect("https://fav.farm/📽️");
+});
+
 app.get("/:slug/info", async (c) => {
   try {
     const { slug } = c.req.param();
@@ -87,7 +91,7 @@ app.get("/:slug/:config?", async (c) => {
       );
 
       const font = await loadFont(SANS_32_WHITE);
-      const rating = new Jimp({ width: 230, height: 345 }).print({
+      const rating = new Jimp({ width: MAX_WIDTH, height: MAX_HEIGHT }).print({
         font,
         x: 0,
         y: 0,
