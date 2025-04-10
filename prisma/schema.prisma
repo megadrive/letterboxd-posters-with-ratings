@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/client"
 }
 
 datasource db {
@@ -14,8 +15,8 @@ datasource db {
 }
 
 model Rating {
-  slug      String @id
-  rating    Float
-  posterUrl String
+  slug        String   @id
+  rating      Float
+  posterUrl   String
   lastUpdated DateTime @default(now())
 }

@@ -1,11 +1,10 @@
-import type cheerio from "cheerio";
 import { load } from "cheerio";
-import { consts } from "./consts";
-import { cache } from "./cache";
+import { consts } from "./consts.js";
+import { cache } from "./cache.js";
 
 async function getHtml(
   url: string
-): Promise<ReturnType<typeof cheerio.load> | undefined> {
+): Promise<ReturnType<typeof load> | undefined> {
   console.info(`url: ${url}`);
 
   try {

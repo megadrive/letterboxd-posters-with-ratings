@@ -1,5 +1,5 @@
-import { envVars } from "./envVars";
-import { prisma } from "./prisma";
+import { envVars } from "./envVars.js";
+import { prisma } from "./prisma.js";
 
 export const cache = {
   get: async (slug: string) => {
