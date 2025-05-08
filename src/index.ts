@@ -153,15 +153,6 @@ app.get("/:slug/:config?", async (c) => {
         res.arrayBuffer()
       );
 
-      const font = await loadFont(SANS_32_WHITE);
-      const rating = new Jimp({ width: MAX_WIDTH, height: MAX_HEIGHT }).print({
-        font,
-        x: 0,
-        y: 0,
-        text: info.stars,
-      });
-      rating.background = 0x000000;
-
       const compositedInitial = await Jimp.fromBuffer(posterBuffer);
       let composited = compositedInitial
         .scaleToFit({ w: MAX_WIDTH, h: MAX_HEIGHT })
@@ -207,6 +198,15 @@ app.get("/:slug/:config?", async (c) => {
         src: stars,
         x: MAX_WIDTH - stars.bitmap.width - padding,
         y: MAX_HEIGHT - assets.star.bitmap.height - padding,
+      });
+
+      // add the rating text
+      const font = await loadFont(SANS_16_WHITE);
+      composited = composited.print({
+        font,
+        x: 32,
+        y: MAX_HEIGHT - assets.banner.bitmap.height + 8,
+        text: info.rating,
       });
 
       return await composited.getBuffer("image/png");
