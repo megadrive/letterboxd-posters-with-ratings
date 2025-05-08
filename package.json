@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/index.ts",
-    "build": "prisma generate && tsc",
+    "build": "tsc",
+    "predeploy": "prisma generate && prisma db push",
     "dev": "tsx watch src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
