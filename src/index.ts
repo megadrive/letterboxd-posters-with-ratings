@@ -61,7 +61,7 @@ function addWeightedRating(
   }
 
   const isBetween = (num: number, min: number, max: number) =>
-    num >= min && num <= max;
+    num >= min && num < max;
 
   const rv = { ...info, weightedRating: 0 };
 
@@ -71,41 +71,41 @@ function addWeightedRating(
   }
 
   // 1.3-1.7
-  if (isBetween(info.rating, 1.3, 1.7)) {
+  if (isBetween(info.rating, 1.2, 1.7)) {
     rv.weightedRating = 1.5;
   }
 
   // 1.8-2.2
-  if (isBetween(info.rating, 1.8, 2.2)) {
+  if (isBetween(info.rating, 1.7, 2.2)) {
     rv.weightedRating = 2;
   }
 
   // 2.3-2.7
-  if (isBetween(info.rating, 2.3, 2.7)) {
+  if (isBetween(info.rating, 2.2, 2.7)) {
     rv.weightedRating = 2.5;
   }
 
   // 2.8-3.2
-  if (isBetween(info.rating, 2.8, 3.2)) {
+  if (isBetween(info.rating, 2.7, 3.2)) {
     rv.weightedRating = 3;
   }
 
   // 3.3-3.7
-  if (isBetween(info.rating, 3.3, 3.7)) {
+  if (isBetween(info.rating, 3.2, 3.7)) {
     rv.weightedRating = 3.5;
   }
 
   // 3.8-4.2
-  if (isBetween(info.rating, 3.8, 4.2)) {
+  if (isBetween(info.rating, 3.7, 4.2)) {
     rv.weightedRating = 4;
   }
   // 4.3-4.5
-  if (isBetween(info.rating, 4.3, 4.5)) {
+  if (isBetween(info.rating, 4.2, 4.5)) {
     rv.weightedRating = 4.5;
   }
 
   // 4.6+
-  if (info.rating > 4.6) {
+  if (info.rating > 4.5) {
     rv.weightedRating = 5;
   }
 
