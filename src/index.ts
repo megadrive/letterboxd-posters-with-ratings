@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { config } from "./config.js";
 import { serve } from "@hono/node-server";
 import { envVars } from "./envVars.js";
+import { Return } from "@prisma/client/runtime/library";
 
 const MAX_WIDTH = 230;
 const MAX_HEIGHT = 345;
@@ -50,15 +51,77 @@ app.get("/favicon.ico", async (c) => {
   return c.redirect("https://fav.farm/📽️");
 });
 
+function addWeightedRating(
+  info: Awaited<ReturnType<typeof fetchInfo>>
+):
+  | (Awaited<Return<typeof fetchInfo>> & { weightedRating: number })
+  | undefined {
+  if (!info) {
+    return undefined;
+  }
+
+  const isBetween = (num: number, min: number, max: number) =>
+    num >= min && num <= max;
+
+  const rv = { ...info, weightedRating: 0 };
+
+  // 0-1.2
+  if (isBetween(info.rating, 0, 1.2)) {
+    rv.weightedRating = 1;
+  }
+
+  // 1.3-1.7
+  if (isBetween(info.rating, 1.3, 1.7)) {
+    rv.weightedRating = 1.5;
+  }
+
+  // 1.8-2.2
+  if (isBetween(info.rating, 1.8, 2.2)) {
+    rv.weightedRating = 2;
+  }
+
+  // 2.3-2.7
+  if (isBetween(info.rating, 2.3, 2.7)) {
+    rv.weightedRating = 2.5;
+  }
+
+  // 2.8-3.2
+  if (isBetween(info.rating, 2.8, 3.2)) {
+    rv.weightedRating = 3;
+  }
+
+  // 3.3-3.7
+  if (isBetween(info.rating, 3.3, 3.7)) {
+    rv.weightedRating = 3.5;
+  }
+
+  // 3.8-4.2
+  if (isBetween(info.rating, 3.8, 4.2)) {
+    rv.weightedRating = 4;
+  }
+  // 4.3-4.5
+  if (isBetween(info.rating, 4.3, 4.5)) {
+    rv.weightedRating = 4.5;
+  }
+
+  // 4.6+
+  if (info.rating > 4.6) {
+    rv.weightedRating = 5;
+  }
+
+  return rv;
+}
+
 app.get("/:slug/info", async (c) => {
   try {
     const { slug } = c.req.param();
     const info = await fetchInfo(slug);
-    if (!info) {
+    const infoWithWeight = addWeightedRating(info);
+    if (!infoWithWeight) {
       return c.notFound();
     }
 
-    return c.json(info);
+    return c.json(infoWithWeight);
   } catch (error) {
     console.error(error);
   }
@@ -115,7 +178,11 @@ app.get("/:slug/:config?", async (c) => {
         width: MAX_WIDTH,
         height: assets.star.bitmap.height,
       }).brightness(100);
-      const remainder = +info.rating % 1;
+
+      const infoWithWeight = addWeightedRating(info);
+
+      const blitAgainst = +(infoWithWeight?.weightedRating ?? 0);
+      const remainder = blitAgainst % 1;
       if (remainder > 0) {
         stars = stars.blit({
           src: assets.half,
@@ -123,7 +190,7 @@ app.get("/:slug/:config?", async (c) => {
           y: 0,
         });
       }
-      for (let i = 0; i < Math.floor(+info.rating); i++) {
+      for (let i = 0; i < Math.floor(blitAgainst); i++) {
         const x =
           startX -
           i * assets.star.bitmap.width -
@@ -147,7 +214,7 @@ app.get("/:slug/:config?", async (c) => {
 
     c.header("Cache-Control", "max-age=86400, stale-while-revalidate=1800");
     c.header("Content-Type", "image/png");
-    return c.body(postered);
+    return c.body(postered, 200);
   } catch (error) {
     console.error(error);
   }
@@ -159,3 +226,5 @@ serve({
   fetch: app.fetch,
   port: envVars.PORT,
 });
+
+console.info(`Server running on port ${envVars.PORT}`);
