@@ -4,5 +4,3 @@ node_modules
 # dont save cache
 *.db
 dist
-
-src/generated
