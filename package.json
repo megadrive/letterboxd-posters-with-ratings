@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "start": "tsx src/index.ts",
+    "start": "node src/index.js",
     "build": "tsc",
     "predeploy": "prisma generate && prisma db push",
     "dev": "tsx watch src/index.ts",
@@ -31,5 +31,13 @@
     "jimp": "^1.6.0",
     "tsx": "^4.19.3",
     "zod": "^3.24.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "esbuild",
+      "prisma"
+    ]
   }
 }
