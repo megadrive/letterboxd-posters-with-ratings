@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "start": "node src/index.js",
+    "start": "node ./dist/index.js",
     "build": "tsc",
     "predeploy": "prisma generate && prisma db push",
     "dev": "tsx watch src/index.ts",
