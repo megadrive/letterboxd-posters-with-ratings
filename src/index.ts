@@ -3,7 +3,7 @@ import logger from "./pino.js";
 import { fetchInfo } from "./letterboxd.js";
 import { Jimp, loadFont } from "jimp";
 import { SANS_16_WHITE, SANS_32_WHITE } from "jimp/fonts";
-import { join } from "node:path";
+import path, { join } from "node:path";
 import { config } from "./config.js";
 import { serve } from "@hono/node-server";
 import { envVars } from "./envVars.js";
@@ -13,10 +13,8 @@ const MAX_HEIGHT = 345;
 
 const app = new Hono();
 
-const __dirname = new URL(".", import.meta.url).pathname.slice(1);
-
 const loadAssets = async () => {
-  const pathToAssets = join(__dirname, "..", "assets");
+  const pathToAssets = path.resolve(".", "assets");
   try {
     const banner = (
       await Jimp.read(join(pathToAssets, "banner.png"))
@@ -35,13 +33,19 @@ const loadAssets = async () => {
     logger.error("Couldn't load assets.");
     logger.error(error);
   }
-  return undefined;
+  throw new Error("Couldn't load assets.");
 };
 let assets: Awaited<ReturnType<typeof loadAssets>> | undefined;
-loadAssets().then((a) => {
-  assets = a;
-  logger.info("Assets loaded.");
-});
+loadAssets()
+  .then((a) => {
+    assets = a;
+    logger.info("Assets loaded.");
+  })
+  .catch((e) => {
+    logger.error("Couldn't load assets.");
+    logger.error(e);
+    process.exit(1);
+  });
 
 app.get("/", async (c) => {
   return c.notFound();
