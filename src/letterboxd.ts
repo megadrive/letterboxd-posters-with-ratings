@@ -1,11 +1,12 @@
 import { load } from "cheerio";
 import { consts } from "./consts.js";
-import { cache } from "./cache.js";
+import { keyv as cache } from "./keyv.js";
+import logger from "./pino.js";
 
 async function getHtml(
   url: string
 ): Promise<ReturnType<typeof load> | undefined> {
-  console.info(`url: ${url}`);
+  logger.debug(`url: ${url}`);
 
   try {
     const res = await fetch(url, {
@@ -19,7 +20,7 @@ async function getHtml(
     const $ = load(html);
     return $;
   } catch (error) {
-    console.error(error);
+    logger.error(error);
   }
 
   return undefined;
@@ -36,16 +37,18 @@ export const fetchInfo = async (
     }
   | undefined
 > => {
-  console.info(`slug: ${slug}`);
+  logger.debug(`slug: ${slug}`);
 
-  console.info(`Checking cache for ${slug}`);
+  logger.info(`Checking cache for ${slug}`);
   const cachedRating = await cache.get(slug);
+  logger.info(`Cached rating for ${slug}? ${!!cachedRating}`);
   if (cachedRating) {
-    console.info(`Cached rating for ${slug}: ${cachedRating}`);
+    logger.trace(`Cache hit for ${slug}`);
+    logger.trace(cachedRating);
     return {
       slug,
       rating: cachedRating.rating,
-      poster: cachedRating.posterUrl,
+      poster: cachedRating.poster,
       stars: `${cachedRating.rating} / 5`,
     };
   }
@@ -63,18 +66,28 @@ export const fetchInfo = async (
     if (!$poster) return undefined;
     let poster = $poster("img").attr("src");
     if (!poster) {
-      console.error("No poster found");
+      logger.warn("No poster found");
       poster = consts.errorImageUrl;
     }
 
     const stars = `${+rating}/5`;
 
     // set cache
-    cache.set({ slug, rating: +rating, poster });
+    const rv = {
+      rating: +rating,
+      poster,
+      stars,
+    };
 
-    return { rating: +rating, slug, poster, stars };
+    cache.set(slug, rv);
+
+    return {
+      ...rv,
+      poster,
+      slug,
+    };
   } catch (error) {
-    console.error(error);
+    logger.error(error);
   }
 
   return undefined;

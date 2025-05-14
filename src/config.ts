@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Result } from "./result.type.js";
+import logger from "./pino.js";
 
 export const ConfigSchema = z.object({
   ratingType: z.enum(["stars", "numbers"]).default("stars"),
@@ -13,7 +14,7 @@ export const config = {
     const parsed = JSON.parse(atob(encoded));
     const result = ConfigSchema.safeParse(parsed);
     if (!result.success) {
-      console.error("Invalid config", result.error);
+      logger.error("Invalid config", result.error);
       return { success: false, message: "Invalid config" };
     }
 

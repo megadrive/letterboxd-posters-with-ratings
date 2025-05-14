@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import logger from "./pino.js";
 import { fetchInfo } from "./letterboxd.js";
 import { Jimp, loadFont } from "jimp";
 import { SANS_16_WHITE, SANS_32_WHITE } from "jimp/fonts";
@@ -6,7 +7,6 @@ import { join } from "node:path";
 import { config } from "./config.js";
 import { serve } from "@hono/node-server";
 import { envVars } from "./envVars.js";
-import { Return } from "@prisma/client/runtime/library";
 
 const MAX_WIDTH = 230;
 const MAX_HEIGHT = 345;
@@ -32,15 +32,15 @@ const loadAssets = async () => {
 
     return { banner, half, star } as const;
   } catch (error) {
-    console.error("Couldn't load assets.");
-    console.error(error);
+    logger.error("Couldn't load assets.");
+    logger.error(error);
   }
   return undefined;
 };
 let assets: Awaited<ReturnType<typeof loadAssets>> | undefined;
 loadAssets().then((a) => {
   assets = a;
-  console.info("Assets loaded.");
+  logger.info("Assets loaded.");
 });
 
 app.get("/", async (c) => {
@@ -54,7 +54,7 @@ app.get("/favicon.ico", async (c) => {
 function addWeightedRating(
   info: Awaited<ReturnType<typeof fetchInfo>>
 ):
-  | (Awaited<Return<typeof fetchInfo>> & { weightedRating: number })
+  | (Awaited<ReturnType<typeof fetchInfo>> & { weightedRating: number })
   | undefined {
   if (!info) {
     return undefined;
@@ -123,7 +123,7 @@ app.get("/:slug/info", async (c) => {
 
     return c.json(infoWithWeight);
   } catch (error) {
-    console.error(error);
+    logger.error(error);
   }
 
   return c.text("", 500);
@@ -145,7 +145,7 @@ app.get("/:slug/:config?", async (c) => {
     const configParam = c.req.param("config");
     const providedConfig = configParam ? config.decode(configParam) : undefined;
 
-    console.info({ slug, info, providedConfig });
+    logger.debug({ slug, info, providedConfig });
 
     const postered = await (async () => {
       // read info.poster as buffer from a fetch
@@ -187,7 +187,7 @@ app.get("/:slug/:config?", async (c) => {
           i * assets.star.bitmap.width -
           padding -
           (remainder ? assets.half.bitmap.width : 0);
-        console.info(`Blitting star ${x}`);
+        logger.debug(`Blitting star ${x}`);
         stars = stars.blit({
           src: assets.star,
           x,
@@ -216,7 +216,7 @@ app.get("/:slug/:config?", async (c) => {
     c.header("Content-Type", "image/png");
     return c.body(postered, 200);
   } catch (error) {
-    console.error(error);
+    logger.error(error);
   }
 
   return c.notFound();
@@ -227,4 +227,4 @@ serve({
   port: envVars.PORT,
 });
 
-console.info(`Server running on port ${envVars.PORT}`);
+logger.info(`Server running on port ${envVars.PORT}`);
