@@ -55,7 +55,7 @@ export const fetchInfo = async (
 
   try {
     const $rating = await getHtml(
-      `https://letterboxd.com/csi/film/${slug}/rating-histogram/`
+      `https://letterboxd.com/csi/film/${slug}/ratings-summary/`
     );
     if (!$rating) return undefined;
     const rating = $rating("span.average-rating").text().trim();
