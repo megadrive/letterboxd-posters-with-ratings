@@ -2,6 +2,8 @@ import { load } from "cheerio";
 import { consts } from "./consts.js";
 import { keyv as cache } from "./keyv.js";
 import logger from "./pino.js";
+import { z } from "zod";
+import { to } from "await-to-js";
 
 async function getHtml(
   url: string
@@ -24,6 +26,46 @@ async function getHtml(
   }
 
   return undefined;
+}
+
+async function fetchPoster(
+  slug: string,
+  altId?: string
+): Promise<string | undefined> {
+  const POSTER_URL = `https://letterboxd.com/film/${slug}/poster/std${
+    altId ? `/${altId}` : "/125"
+  }/?k=`;
+  logger.warn(`Fetching poster from ${POSTER_URL}`);
+
+  const shape = z.object({
+    url: z.string().url(),
+    url2x: z.string().url(),
+  });
+
+  const [resErr, res] = await to(fetch(POSTER_URL));
+  if (resErr || !res.ok) {
+    logger.error(
+      `Error fetching poster for ${slug}: ${res?.status} - ${res?.statusText}`
+    );
+    if (resErr) {
+      logger.error(resErr);
+    }
+    return;
+  }
+
+  const json = await res.json();
+
+  const parsed = shape.safeParse(json);
+  if (!parsed.success) {
+    logger.error(`Error parsing poster JSON for ${slug}:`);
+    logger.error(parsed.error);
+    return;
+  }
+
+  // try to get the largest image possible
+  const href = parsed.data.url2x ?? parsed.data.url;
+
+  return href;
 }
 
 export const fetchInfo = async (
@@ -60,11 +102,7 @@ export const fetchInfo = async (
     if (!$rating) return undefined;
     const rating = $rating("span.average-rating").text().trim();
 
-    const $poster = await getHtml(
-      `https://letterboxd.com/ajax/poster/film/${slug}/hero/230x345/?k=_45aa59a6`
-    );
-    if (!$poster) return undefined;
-    let poster = $poster("img").attr("src");
+    let poster = await fetchPoster(slug);
     if (!poster) {
       logger.warn("No poster found");
       poster = consts.errorImageUrl;

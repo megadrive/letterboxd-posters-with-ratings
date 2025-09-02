@@ -11,6 +11,9 @@ importers:
       '@hono/node-server':
         specifier: ^1.14.0
         version: 1.14.0(hono@4.7.6)
+      await-to-js:
+        specifier: ^3.0.0
+        version: 3.0.0
       cheerio:
         specifier: ^1.0.0
         version: 1.0.0

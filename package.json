@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.14.0",
+    "await-to-js": "^3.0.0",
     "cheerio": "^1.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
